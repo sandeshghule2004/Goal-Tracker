@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Goal Tracker</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            width: 400px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .progress {
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 15px;
+            width: 0%;
+            background: #22c55e;
+            transition: width 0.3s;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #0072ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #005fd4;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        li {
+            background: #f8fafc;
+            padding: 8px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        li.completed {
+            text-decoration: line-through;
+            color: gray;
+            background: #e5e7eb;
+        }
+
+        .actions span {
+            cursor: pointer;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+        .done {
+            color: green;
+        }
+
+        .delete {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎯 Goal Tracker</h2>
+
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <input type="text" id="goalText" placeholder="Enter your goal">
+    <select id="goalType">
+        <option value="Daily">Daily Goal</option>
+        <option value="Weekly">Weekly Goal</option>
+    </select>
+
+    <button onclick="addGoal()">Add Goal</button>
+
+    <ul id="goalList"></ul>
+</div>
+
+<script>
+    let goals = JSON.parse(localStorage.getItem("goals")) || [];
+
+    function addGoal() {
+        const text = document.getElementById("goalText").value.trim();
+        const type = document.getElementById("goalType").value;
+
+        if (text === "") {
+            alert("Please enter a goal");
+            return;
+        }
+
+        goals.push({
+            id: Date.now(),
+            text,
+            type,
+            completed: false
+        });
+
+        saveGoals();
+        displayGoals();
+        document.getElementById("goalText").value = "";
+    }
+
+    function displayGoals() {
+        const list = document.getElementById("goalList");
+        list.innerHTML = "";
+
+        goals.forEach(goal => {
+            const li = document.createElement("li");
+            li.className = goal.completed ? "completed" : "";
+
+            li.innerHTML = `
+                <span>${goal.text} (${goal.type})</span>
+                <div class="actions">
+                    <span class="done" onclick="toggleGoal(${goal.id})">✔</span>
+                    <span class="delete" onclick="deleteGoal(${goal.id})">✖</span>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+
+        updateProgress();
+    }
+
+    function toggleGoal(id) {
+        goals = goals.map(goal =>
+            goal.id === id ? { ...goal, completed: !goal.completed } : goal
+        );
+        saveGoals();
+        displayGoals();
+    }
+
+    function deleteGoal(id) {
+        goals = goals.filter(goal => goal.id !== id);
+        saveGoals();
+        displayGoals();
+    }
+
+    function updateProgress() {
+        const total = goals.length;
+        const completed = goals.filter(g => g.completed).length;
+        const percentage = total === 0 ? 0 : (completed / total) * 100;
+        document.getElementById("progressBar").style.width = percentage + "%";
+    }
+
+    function saveGoals() {
+        localStorage.setItem("goals", JSON.stringify(goals));
+    }
+
+    displayGoals();
+</script>
+
+</body>
+</html>
